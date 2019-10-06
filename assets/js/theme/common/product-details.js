@@ -11,6 +11,8 @@ import forms from '../common/models/forms';
 import { normalizeFormData } from './utils/api';
 import { isBrowserIE, convertIntoArray } from './utils/ie-helpers';
 import bannerUtils from './utils/banner-utils';
+import runGraphQLQuery from '../global/graphql-request';
+import gql from 'graphql-tag';
 
 export default class ProductDetails extends ProductDetailsBase {
     constructor($scope, context, productAttributesData = {}) {
@@ -84,13 +86,21 @@ export default class ProductDetails extends ProductDetailsBase {
             }
         });
 
+        this.productId = $('[name="product_id"]', $form).val();
+
         // Update product attributes. Also update the initial view in case items are oos
         // or have default variant properties that change the view
         if ((isEmpty(productAttributesData) || hasDefaultOptions) && hasOptions) {
-            const $productId = $('[name="product_id"]', $form).val();
-            const optionChangeCallback = optionChangeDecorator.call(this, hasDefaultOptions);
-
-            utils.api.productAttributes.optionChange($productId, $form.serialize(), 'products/bulk-discount-rates', optionChangeCallback);
+            utils.api.productAttributes.optionChange(this.productId, $form.serialize(), 'products/bulk-discount-rates', (err, response) => {
+                const attributesData = response.data || {};
+                const attributesContent = response.content || {};
+                this.updateProductAttributes(attributesData);
+                if (hasDefaultOptions) {
+                    this.updateView(attributesData, attributesContent);
+                } else {
+                    this.updateDefaultAttributesForOOS(attributesData);
+                }
+            });
         } else {
             this.updateProductAttributes(productAttributesData);
             bannerUtils.dispatchProductBannerEvent(productAttributesData);
@@ -99,6 +109,100 @@ export default class ProductDetails extends ProductDetailsBase {
         $productOptionsElement.show();
 
         this.previewModal = modalFactory('#previewModal')[0];
+
+        this.multipleChoiceOptionsState = this.getMultipleChoiceOptionsState(this.context.productOptionsState);
+
+        Promise.all(this.getMultipleChoiceLookAheadQueries(this.multipleChoiceOptionsState)
+            .map(query => runGraphQLQuery(
+                this.context.storefrontAPIToken,
+                query,
+            )))
+            .then(responses => responses.map(res => res.data.site)
+                .reduce((acc, site) => ({ ...acc, ...site })))
+            .then(data => Object.keys(data)
+                .filter(key => !key.startsWith('__'))
+                .map(key => ({
+                    valueIds: this.getOptionValueIdsFromGraphQLAliasString(key),
+                    data: data[key],
+                })))
+            .then(lookAheadData => this.updateProductAttributeLookAheadPrices(lookAheadData));
+    }
+
+    getMultipleChoiceOptionsState(rawState) {
+        // return rawState.filter(option => option.type.startsWith('Configurable_PickList_'));
+        // Only run requests for "select" options for now
+        return rawState.filter(option => option.partial.startsWith('set-select'));
+    }
+
+    getSelectedOptionValueEntityIdsFromState(state) {
+        return state.map(option => option.values.filter(value => value.selected).map(value => ({
+            oid: option.id,
+            vid: value.id,
+        }))).reduce((acc, val) => acc.concat(val));
+    }
+
+    getNonSelectedOptionValueEntityIdsFromState(state) {
+        return state.map(option => option.values.filter(value => !value.selected).map(value => ({
+            oid: option.id,
+            vid: value.id,
+        }))).reduce((acc, val) => acc.concat(val));
+    }
+
+    getLookAheadValueEntityIdsFromState(state) {
+        const selected = this.getSelectedOptionValueEntityIdsFromState(state);
+        const nonselected = this.getNonSelectedOptionValueEntityIdsFromState(state);
+        return nonselected.map(lookAheadValue => (selected.concat(lookAheadValue)));
+    }
+
+    getProductOptionSetAlias(productId, optionEntityIds) {
+        return `p${productId}${optionEntityIds.map(o => `o${o.oid}v${o.vid}`).join('')}: `
+            + `product( entityId: ${this.productId},`
+            + `optionValueIds:[${optionEntityIds
+                .map(o => `{optionEntityId: ${o.oid}, valueEntityId: ${o.vid}}`)}])`;
+    }
+
+    getOptionValueIdsFromGraphQLAliasString(string) {
+        /*
+            Accept GraphQL JSON key of the form 'p6606o2403v2718o2404v2719'
+            Return an object of option IDs and option value IDs of the form
+                        {2403: 2718, 2404: 2719}
+         */
+        const [, ...ovStrings] = string.split('p')[1].split('o');
+
+        return ovStrings.map(ovString => parseInt(ovString.split('v')[1], 10));
+    }
+
+
+    chunk(arr, chunkSize) {
+        const R = [];
+        for (let i = 0, len = arr.length; i < len; i += chunkSize) { R.push(arr.slice(i, i + chunkSize)); }
+        return R;
+    }
+
+    getMultipleChoiceLookAheadQueries(state) {
+        const selected = this.getSelectedOptionValueEntityIdsFromState(state);
+        const nonselected = this.getNonSelectedOptionValueEntityIdsFromState(state);
+
+        const productOptionSetChunks = this.chunk(nonselected.map(lookAheadValue => (selected.concat(lookAheadValue))), 4);
+
+        return productOptionSetChunks.map(productOptionSets => gql`
+        query getLookAheadProductOptionData {
+          site {
+            ${productOptionSets.map(optionEntityIds => `${this.getProductOptionSetAlias(this.productId, optionEntityIds)} {
+              ...ProductFields
+            }`).join('\n')}
+          }
+        }
+
+        fragment ProductFields on Product{
+          availability
+          prices {
+            price {
+              value
+              currencyCode
+            }
+          }
+        }`);
     }
 
     registerAddToCartValidation() {
@@ -246,14 +350,15 @@ export default class ProductDetails extends ProductDetailsBase {
     productOptionsChanged(event) {
         const $changedOption = $(event.target);
         const $form = $changedOption.parents('form');
-        const productId = $('[name="product_id"]', $form).val();
+
+        // Add some handling here to re-flow lookahead prices when option selections change
 
         // Do not trigger an ajax request if it's a file or if the browser doesn't support FormData
         if ($changedOption.attr('type') === 'file' || window.FormData === undefined) {
             return;
         }
 
-        utils.api.productAttributes.optionChange(productId, $form.serialize(), 'products/bulk-discount-rates', (err, response) => {
+        utils.api.productAttributes.optionChange(this.productId, $form.serialize(), 'products/bulk-discount-rates', (err, response) => {
             const productAttributesData = response.data || {};
             const productAttributesContent = response.content || {};
             this.updateProductAttributes(productAttributesData);
@@ -532,5 +637,158 @@ export default class ProductDetails extends ProductDetailsBase {
     updateProductAttributes(data) {
         super.updateProductAttributes(data);
         this.showProductImage(data.image);
+
+        if (behavior !== 'hide_option' && behavior !== 'label_option') {
+            return;
+        }
+
+        $('[data-product-attribute-value]', this.$scope).each((i, attribute) => {
+            const $attribute = $(attribute);
+            const attrId = parseInt($attribute.data('productAttributeValue'), 10);
+
+
+            if (inStockIds.indexOf(attrId) !== -1) {
+                this.enableAttribute($attribute, behavior, outOfStockMessage);
+            } else {
+                this.disableAttribute($attribute, behavior, outOfStockMessage);
+            }
+        });
+    }
+
+    /**
+     * Add new price to select options from GraphQL data
+     */
+    updateProductAttributeLookAheadPrices(data) {
+        $('[data-product-attribute-value]', this.$scope).each((i, attribute) => {
+            const $attribute = $(attribute);
+            const attrId = parseInt($attribute.data('productAttributeValue'), 10);
+
+            const newDataForAttribute = data.find(obj => obj.valueIds.indexOf(attrId) !== -1);
+            if (newDataForAttribute) {
+                this.addNewPriceToAttribute($attribute, newDataForAttribute.data.prices.price);
+            } else {
+                this.removePriceFromAttribute($attribute);
+            }
+        });
+    }
+
+    formatPrice(price) {
+        return new Intl.NumberFormat(navigator.language, {
+            style: 'currency',
+            currency: price.currencyCode,
+        }).format(price.value);
+    }
+
+    addNewPriceToAttribute($attribute, price) {
+        if (this.getAttributeType($attribute) === 'set-select') {
+            $(`<span class="look-ahead-price" data-price-value="${price.value}"> (${this.formatPrice(price)})</span>`)
+                .appendTo($attribute);
+        }
+    }
+
+    removePriceFromAttribute($attribute) {
+        $attribute.find('.look-ahead-price').remove();
+    }
+
+    disableAttribute($attribute, behavior, outOfStockMessage) {
+        if (this.getAttributeType($attribute) === 'set-select') {
+            return this.disableSelectOptionAttribute($attribute, behavior, outOfStockMessage);
+        }
+
+        if (behavior === 'hide_option') {
+            $attribute.hide();
+        } else {
+            $attribute.addClass('unavailable');
+        }
+    }
+
+    disableSelectOptionAttribute($attribute, behavior, outOfStockMessage) {
+        const $select = $attribute.parent();
+
+        if (behavior === 'hide_option') {
+            $attribute.toggleOption(false);
+            // If the attribute is the selected option in a select dropdown, select the first option (MERC-639)
+            if ($select.val() === $attribute.attr('value')) {
+                $select[0].selectedIndex = 0;
+            }
+        } else {
+            $attribute.attr('disabled', 'disabled');
+            $attribute.html($attribute.html().replace(outOfStockMessage, '') + outOfStockMessage);
+        }
+    }
+
+    enableAttribute($attribute, behavior, outOfStockMessage) {
+        if (this.getAttributeType($attribute) === 'set-select') {
+            return this.enableSelectOptionAttribute($attribute, behavior, outOfStockMessage);
+        }
+
+        if (behavior === 'hide_option') {
+            $attribute.show();
+        } else {
+            $attribute.removeClass('unavailable');
+        }
+    }
+
+    enableSelectOptionAttribute($attribute, behavior, outOfStockMessage) {
+        if (behavior === 'hide_option') {
+            $attribute.toggleOption(true);
+        } else {
+            $attribute.prop('disabled', false);
+            $attribute.html($attribute.html().replace(outOfStockMessage, ''));
+        }
+    }
+
+    getAttributeType($attribute) {
+        const $parent = $attribute.closest('[data-product-attribute]');
+
+        return $parent ? $parent.data('productAttribute') : null;
+    }
+
+    /**
+     * Allow radio buttons to get deselected
+     */
+    initRadioAttributes() {
+        $('[data-product-attribute] input[type="radio"]', this.$scope).each((i, radio) => {
+            const $radio = $(radio);
+
+            // Only bind to click once
+            if ($radio.attr('data-state') !== undefined) {
+                $radio.on('click', () => {
+                    if ($radio.data('state') === true) {
+                        $radio.prop('checked', false);
+                        $radio.data('state', false);
+
+                        $radio.trigger('change');
+                    } else {
+                        $radio.data('state', true);
+                    }
+
+                    this.initRadioAttributes();
+                });
+            }
+
+            $radio.attr('data-state', $radio.prop('checked'));
+        });
+    }
+
+    /**
+     * Check for fragment identifier in URL requesting a specific tab
+     */
+    getTabRequests() {
+        if (window.location.hash && window.location.hash.indexOf('#tab-') === 0) {
+            const $activeTab = $('.tabs').has(`[href='${window.location.hash}']`);
+            const $tabContent = $(`${window.location.hash}`);
+
+            if ($activeTab.length > 0) {
+                $activeTab.find('.tab')
+                    .removeClass('is-active')
+                    .has(`[href='${window.location.hash}']`)
+                    .addClass('is-active');
+
+                $tabContent.addClass('is-active')
+                    .siblings()
+                    .removeClass('is-active');
+            }
+        }
     }
 }
