@@ -15,6 +15,57 @@ export default class Cart extends PageManager {
             .hide(); // TODO: temporary until roper pulls in his cart components
 
         this.bindEvents();
+        this.getCatalogPricesForCartLineItems();
+    }
+
+    getCatalogPricesForCartLineItems() {
+        utils.api.cart.getCart({ includeOptions: true }, (err, carts) => {
+            const cart = carts[0];
+            const productQueries = [
+                cart.lineItems.physicalItems,
+                cart.lineItems.digitalItems,
+            ].reduce((a, b) => a.concat(b))
+                .map(lineItem => ({
+                    entityId: lineItem.productId,
+                    optionValueIds: lineItem.options
+                        .filter(option => option.valueId != null)
+                        .map(option => ({ optionEntityId: option.nameId, valueEntityId: option.valueId })),
+                }));
+
+            if (productQueries.length > 0) {
+                const query = `
+                query getLookAheadProductOptionData {
+                      site {
+                        ${productQueries.map(product => `product(
+                        entityId: ${product.entityId},
+                        optionValueIds:[${product.optionValueIds
+                    .map(option => `{optionEntityId:${option.optionEntityId},valueEntityId:${option.valueEntityId}}`)}]
+                        ) {
+                          ...ProductFields
+                        }`).join('\\n')}
+                      }
+                    }
+                    fragment ProductFields on Product{
+                      prices {
+                        price {
+                          value
+                          currencyCode
+                        }
+                      }
+                  }`;
+
+                fetch('/graphql', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJlYXQiOjIwMDAwMDAwMDAsInN1Yl90eXBlIjoyLCJ0b2tlbl90eXBlIjoxLCJjb3JzIjpbImh0dHBzOi8vYmlnY29tbWVyY2Uuc3VwcG9ydCJdLCJjaWQiOjEsImlhdCI6MTU3MDU1OTA5OSwic3ViIjoiZGhwdTc3YWZsNHlhdTlvcXN5N3ptbnl0NTNiem41NSIsInNpZCI6NzMzMTk3LCJpc3MiOiJCQyJ9.YL4ilM8U505imsnnFVygx1nPaa_yLX4r0f8KhBwJZJglbsW87FzhTicBEwzmE9cZF3GsDYHDxeFUXceddlqaOg'
+                    },
+                    body: JSON.stringify({ query }),
+                })
+                    .then(res => res.json())
+                    .then(res => console.log(res.data.site));
+            }
+        });
     }
 
     cartUpdate($target) {
