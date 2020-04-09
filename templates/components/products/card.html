@@ -52,10 +52,11 @@
                             <a href="{{url}}" data-event-type="product-click" class="button button--small card-figcaption-button" data-product-id="{{id}}">{{out_of_stock_message}}</a>
                         {{/if}}
                         {{#or pre_order_add_to_cart_url add_to_cart_url}}
-                            <form class="form" method="post" action="{{settings.secure_base_url}}{{urls.cart}}" enctype="multipart/form-data"
+                            <form class="form" method="post" action="{{settings.secure_base_url}}/remote/v1/cart/add" enctype="multipart/form-data"
                                   data-cart-item-add>
                                 <input type="hidden" name="action" value="add">
                                 <input type="hidden" name="product_id" value="{{product.id}}"/>
+                                <input type="hidden" name="qty[]" value="1"/>
                                 <div class="form-action">
                                     <input id="form-action-addToCart" data-wait-message="{{lang 'products.adding_to_cart'}}" class="button button--small card-figcaption-button" type="submit"
                                            value="{{#if pre_order}}{{lang 'products.pre_order'}}{{else}}{{lang 'products.add_to_cart'}}{{/if}}">
