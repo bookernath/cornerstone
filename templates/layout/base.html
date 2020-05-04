@@ -42,11 +42,52 @@
         {{> components/common/body }}
         {{> components/common/footer }}
 
+        <script crossorigin="anonymous"
+                src="https://polyfill.io/v3/polyfill.min.js?version=3.52.1&features=es2015%2Ces6"></script>
         <script>window.__webpack_public_path__ = "{{cdn 'assets/dist/'}}";</script>
         <script src="{{cdn 'assets/dist/theme-bundle.main.js'}}"></script>
         <script>
-            {{!-- Exported in app.js --}}
-            window.stencilBootstrap("{{page_type}}", {{jsContext}}).load();
+            function main() {
+                {{!-- Exported in app.js --}}
+                window.stencilBootstrap("{{page_type}}", {{jsContext}}).load();
+            }
+
+            function browserSupportsAllFeatures() {
+                var str = 'class ಠ_ಠ extends Array {constructor(j = "a", ...c) {const q = (({u: e}) => {return { [`s${c}`]: Symbol(j) };})({});super(j, q, ...c);}}' +
+                    'new Promise((f) => {const a = function* (){return "\u{20BB7}".match(/./u)[0].length === 2 || true;};for (let vre of a()) {' +
+                    'const [uw, as, he, re] = [new Set(), new WeakSet(), new Map(), new WeakMap()];break;}f(new Proxy({}, {get: (han, h) => h in han ? han[h] ' +
+                    ': "42".repeat(0o10)}));}).then(bi => new ಠ_ಠ(bi.rd));';
+
+                try {
+                    eval(str);
+                } catch(e) {
+                    return false
+                }
+                return true
+            }
+
+            function loadScript(src, done) {
+                var js = document.createElement('script');
+                js.src = src;
+
+                js.onload = function () {
+                    done();
+                };
+
+                js.onerror = function () {
+                    done(new Error('Failed to load script ' + src));
+                };
+
+                document.head.appendChild(js);
+            }
+
+            if (browserSupportsAllFeatures()) {
+                // Browsers that support all features run `main()` immediately.
+                main();
+            } else {
+                // All other browsers loads polyfills and then run `main()`.
+                loadScript('https://polyfill.io/v3/polyfill.min.js?version=3.52.1&features=es2015%2Ces6', main);
+            }
         </script>
 
         {{{footer.scripts}}}

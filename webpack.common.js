@@ -28,9 +28,7 @@ module.exports = {
                             ['@babel/preset-env', {
                                 loose: true, // Enable "loose" transformations for any plugins in this preset that allow them
                                 modules: false, // Don't transform modules; needed for tree-shaking
-                                useBuiltIns: 'usage', // Tree-shake babel-polyfill
                                 targets: '> 1%, last 2 versions, Firefox ESR',
-                                corejs: '^3.4.1',
                             }],
                         ],
                     },
