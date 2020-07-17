@@ -54,7 +54,7 @@
                             {{lang 'forms.gift_certificate.purchase.amount' }}
                             <small>{{lang 'common.required' }}</small>
                         </label>
-                        <input type="text" data-min="{{forms.gift_certificate.minimum.value}}" data-max="{{forms.gift_certificate.maximum.value}}" data-min-formatted="{{forms.gift_certificate.minimum.formatted}}" data-max-formatted="{{forms.gift_certificate.maximum.formatted}}" class="form-input" name="certificate_amount" id="certificate_amount" value="{{forms.gift_certificate.values.amount.value}}">
+                        <input type="text" data-min="{{forms.gift_certificate.minimum.value}}" data-max="{{forms.gift_certificate.maximum.value}}" data-min-formatted="{{localizePrice forms.gift_certificate.minimum settings.request.locale}}" data-max-formatted="{{localizePrice forms.gift_certificate.maximum settings.request.locale}}" class="form-input" name="certificate_amount" id="certificate_amount" value="{{forms.gift_certificate.values.amount.value}}">
                     </div>
                 {{else}}
                     <div class="form-field">
@@ -64,7 +64,7 @@
                         </label>
                         <select class="form-select" name="selected_amount" id="selected_amount">
                             {{#each forms.gift_certificate.amount_options}}
-                                <option value="{{value}}">{{formatted}}</option>
+                                <option value="{{value}}">{{localizePrice this settings.request.locale}}</option>
                             {{/each}}
                         </select>
                     </div>

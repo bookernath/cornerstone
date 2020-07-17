@@ -11,7 +11,7 @@
             </label>
             <select class="form-select" name="message_order_id" id="message_order_id">
                 {{#each customer.inbox.orders}}
-                    <option value="{{id}}">{{lang 'forms.inbox.order_display' id=id date=date total=amount.formatted}}</option>
+                    <option value="{{id}}">{{lang 'forms.inbox.order_display' id=id date=date total=(localizePrice amount settings.request.locale)}}</option>
                 {{/each}}
             </select>
         </div>

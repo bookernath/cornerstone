@@ -45,7 +45,7 @@
                 {{/unless}}
             </figure>
             <div class="account-product-body">
-                <span class="account-product-price">{{price.formatted}}</span>
+                <span class="account-product-price">{{localizePrice price settings.request.locale}}</span>
                 <h5 class="account-product-title">{{quantity}} &#215; {{name}}</h5>
                 {{#if brand}}
                     <h6>{{brand.name}}</h6>

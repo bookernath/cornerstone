@@ -66,7 +66,7 @@
                 </div>
                 <div class="DetailRow">
                     <div class="Label">{{lang 'invoice.payment_method'}}</div>
-                    <div class="Value">{{order.payment_method}} ({{order.total.formatted}})</div>
+                    <div class="Value">{{order.payment_method}} ({{localizePrice order.total settings.request.locale}})</div>
                 </div>
             </div>
             <div class="InvoiceDetailsRight">
@@ -156,8 +156,8 @@
                                 </div>
                             {{/if}}
                         </td>
-                        <td class="ProductCost">{{price.formatted}}</td>
-                        <td class="ProductTotal">{{total.formatted}}</td>
+                        <td class="ProductCost">{{localizePrice price settings.request.locale}}</td>
+                        <td class="ProductTotal">{{localizePrice total settings.request.locale}}</td>
                     </tr>
                 {{/each}}
 
@@ -166,7 +166,7 @@
                 {{#each order.total_rows}}
                     <tr class="InvoiceTotalRow">
                         <td class="Title" colspan="{{#if ../order.has_multiple_shipping_addresses}}5{{else}}4{{/if}}">{{label}}</td>
-                        <td class="Total">{{value.formatted}}</td>
+                        <td class="Total">{{localizePrice value settings.request.locale}}</td>
                     </tr>
                 {{/each}}
                 </tfoot>

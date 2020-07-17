@@ -32,7 +32,7 @@
 
                 <strong class="previewCartCheckout-price">
                     {{#or customer (if theme_settings.restrict_to_login '!==' true)}}
-                        {{cart.sub_total.formatted}}
+                        {{localizePrice cart.sub_total settings.request.locale}}
                     {{else}}
                         {{> components/common/login-for-pricing}}
                     {{/or}}
@@ -76,7 +76,7 @@
 
                     <div class="productView-price">
                         {{#or ../customer (if ../theme_settings.restrict_to_login '!==' true)}}
-                            {{quantity}} &times; {{price.formatted}}
+                            {{quantity}} &times; {{localizePrice price settings.request.locale}}
                         {{else}}
                             {{> components/common/login-for-pricing}}
                         {{/or}}

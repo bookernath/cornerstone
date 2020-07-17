@@ -5,7 +5,7 @@
         </div>
         <div class="cart-total-value">
             {{#or customer (if theme_settings.restrict_to_login '!==' true)}}
-                <span>{{cart.sub_total.formatted}}</span>
+                <span>{{localizePrice cart.sub_total settings.request.locale}}</span>
             {{else}}
                 {{> components/common/login-for-pricing}}
             {{/or}}
@@ -17,7 +17,7 @@
                 <strong>{{lang 'cart.checkout.gift_wrapping'}}:</strong>
             </div>
             <div class="cart-total-value">
-                <span>{{cart.gift_wrapping_cost.formatted}}</span>
+                <span>{{localizePrice cart.gift_wrapping_cost settings.request.locale}}</span>
             </div>
         </li>
     {{/if}}
@@ -35,7 +35,7 @@
                 <strong>{{name}}:</strong>
             </div>
             <div class="cart-total-value">
-                <span>{{cost.formatted}}</span>
+                <span>{{localizePrice cost settings.request.locale}}</span>
             </div>
         </li>
     {{/each}}
@@ -45,7 +45,7 @@
                 <strong>{{lang 'cart.discount'}}:</strong>
             </div>
             <div class="cart-total-value">
-                {{cart.discount.formatted}}
+                {{localizePrice cart.discount settings.request.locale}}
             </div>
         </li>
     {{/if}}
@@ -59,7 +59,7 @@
                     </div>
                 </div>
                 <div class="cart-total-value">
-                    <span>{{discount.formatted}}</span>
+                    <span>{{localizePrice discount settings.request.locale}}</span>
                 </div>
             </li>
         {{/each}}
@@ -77,11 +77,11 @@
                 <div class="cart-total-label">
                     <strong>{{lang 'cart.gift_certificates.code_label' code=code}}</strong>
                     <span>
-                        {{remaining.formatted}} | <a href="{{remove_url}}">{{lang 'cart.gift_certificates.remove'}}</a>
+                        {{localizePrice remaining settings.request.locale}} | <a href="{{remove_url}}">{{lang 'cart.gift_certificates.remove'}}</a>
                     </span>
                 </div>
                 <div class="cart-total-value">
-                    {{used.formatted}}
+                    {{localizePrice used settings.request.locale}}
                 </div>
             </li>
         {{/each}}
@@ -98,7 +98,7 @@
         </div>
         <div class="cart-total-value cart-total-grandTotal">
             {{#or customer (if theme_settings.restrict_to_login '!==' true)}}
-                <span>{{cart.grand_total.formatted}}</span>
+                <span>{{localizePrice cart.grand_total settings.request.locale}}</span>
             {{else}}
                 {{> components/common/login-for-pricing}}
             {{/or}}

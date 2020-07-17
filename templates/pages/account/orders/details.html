@@ -17,7 +17,7 @@
                 {{#each order.total_rows}}
                     {{#if value.value}}
                         <dt class="account-orderTotal-key">{{label}}:</dt>
-                        <dd class="account-orderTotal-value">{{value.formatted}}</dd>
+                        <dd class="account-orderTotal-value">{{localizePrice value settings.request.locale}}</dd>
                     {{/if}}
                 {{/each}}
             </dl>
@@ -32,7 +32,7 @@
                     <dt class="definitionList-key">{{lang 'account.orders.details.payment_date'}}</dt>
                     <dd class="definitionList-value">{{order.date}}</dd>
                     <dt class="definitionList-key">{{lang 'account.orders.details.order_total'}}</dt>
-                    <dd class="definitionList-value">{{order.total.formatted}}</dd>
+                    <dd class="definitionList-value">{{localizePrice order.total settings.request.locale}}</dd>
                     {{#if order.payment_method}}
                         <dt class="definitionList-key">{{lang 'account.orders.details.payment_method'}}</dt>
                         <dd class="definitionList-value">

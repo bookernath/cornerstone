@@ -1,7 +1,7 @@
 {{#if shipping_cost}}
     <div class="cart-total-value">
         <div class="subtotal shipping-estimate-show">
-            <a href="#" class="shipping-estimate-value">{{shipping_cost.formatted}}</a>
+            <a href="#" class="shipping-estimate-value">{{localizePrice shipping_cost settings.request.locale}}</a>
         </div>
     </div>
 {{else}}

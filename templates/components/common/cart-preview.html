@@ -30,9 +30,9 @@
                                 {{quantity}} &times;
                             {{/if}}
                             {{#or ../customer (if ../theme_settings.restrict_to_login '!==' true)}}
-                                <span{{#if price_discounted}} class="price--discounted"{{/if}}>{{price.formatted}}</span>
+                                <span{{#if price_discounted}} class="price--discounted"{{/if}}>{{localizePrice price settings.request.locale}}</span>
                                 {{#if price_discounted}}
-                                    {{price_discounted.formatted}}
+                                    {{localizePrice price_discounted settings.request.locale}}
                                 {{/if}}
                             {{else}}
                                 {{> components/common/login-for-pricing}}

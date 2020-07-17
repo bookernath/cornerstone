@@ -20,7 +20,7 @@
                     {{#if type '===' 'percent'}}
                     {{lang 'products.bulk_pricing.percent' discount=discount.formatted}}
                     {{else if type '===' 'fixed'}}
-                    {{lang 'products.bulk_pricing.fixed' discount=discount.formatted}}
+                    {{lang 'products.bulk_pricing.fixed' discount=(localizePrice discount settings.request.locale)}}
                     {{else if type '===' 'price'}}
                     {{lang 'products.bulk_pricing.price' discount=discount.formatted}}
                     {{/if}}

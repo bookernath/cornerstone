@@ -14,7 +14,7 @@ customer:
     <div class="account-head">
         {{#if customer.store_credit.value '>' 0}}
             <div class="alertBox alertBox--storeCredit">
-                {{{lang 'common.store_credit' store_credit=customer.store_credit.formatted}}}
+                {{{lang 'common.store_credit' store_credit=(localizePrice customer.store_credit settings.request.locale)}}}
             </div>
         {{/if}}
     </div>

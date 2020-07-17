@@ -52,7 +52,7 @@
         {{#if customer.store_credit.value '>' 0}}
             <li class="navPages-item">
                 <a class="navPages-action navPages-action--storeCredit">
-                    {{lang 'common.store_credit_overview' credit=customer.store_credit.formatted}}
+                    {{lang 'common.store_credit_overview' credit=(localizePrice customer.store_credit settings.request.locale)}}
                 </a>
             </li>
         {{/if}}

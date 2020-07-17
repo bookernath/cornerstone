@@ -8,10 +8,10 @@
                    data-dropdown="storeCredit-dropdown"
                    data-options="align:bottom"
                    href="{{urls.cart}}">
-                        <span class="navUser-action-divider">{{lang 'common.store_credit_overview' credit=customer.store_credit.formatted}}</span>
+                        <span class="navUser-action-divider">{{lang 'common.store_credit_overview' credit=(localizePrice customer.store_credit settings.request.locale)}}</span>
                 </a>
                 <div class="dropdown-menu" id="storeCredit-dropdown" data-dropdown-content aria-hidden="true">
-                    {{{lang 'common.store_credit' store_credit=customer.store_credit.formatted}}}
+                    {{{lang 'common.store_credit' store_credit=(localizePrice customer.store_credit settings.request.locale)}}}
                 </div>
             </li>
         {{/if}}
