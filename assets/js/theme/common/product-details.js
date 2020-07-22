@@ -5,6 +5,7 @@ import ImageGallery from '../product/image-gallery';
 import modalFactory, { showAlertModal } from '../global/modal';
 import _ from 'lodash';
 import Wishlist from '../wishlist';
+import { formatPriceForLocale } from './price-formatting';
 
 export default class ProductDetails {
     constructor($scope, context, productAttributesData = {}) {
@@ -525,41 +526,41 @@ export default class ProductDetails {
 
         if (price.with_tax) {
             viewModel.priceLabel.$span.show();
-            viewModel.$priceWithTax.html(price.with_tax.formatted);
+            viewModel.$priceWithTax.html(formatPriceForLocale(price.with_tax));
         }
 
         if (price.without_tax) {
             viewModel.priceLabel.$span.show();
-            viewModel.$priceWithoutTax.html(price.without_tax.formatted);
+            viewModel.$priceWithoutTax.html(formatPriceForLocale(price.without_tax));
         }
 
         if (price.rrp_with_tax) {
             viewModel.rrpWithTax.$div.show();
-            viewModel.rrpWithTax.$span.html(price.rrp_with_tax.formatted);
+            viewModel.rrpWithTax.$span.html(formatPriceForLocale(price.rrp_with_tax));
         }
 
         if (price.rrp_without_tax) {
             viewModel.rrpWithoutTax.$div.show();
-            viewModel.rrpWithoutTax.$span.html(price.rrp_without_tax.formatted);
+            viewModel.rrpWithoutTax.$span.html(formatPriceForLocale(price.rrp_without_tax));
         }
 
         if (price.saved) {
             viewModel.priceSaved.$div.show();
-            viewModel.priceSaved.$span.html(price.saved.formatted);
+            viewModel.priceSaved.$span.html(formatPriceForLocale(price.saved));
         }
 
         if (price.non_sale_price_with_tax) {
             viewModel.priceLabel.$span.hide();
             viewModel.nonSaleWithTax.$div.show();
             viewModel.priceNowLabel.$span.show();
-            viewModel.nonSaleWithTax.$span.html(price.non_sale_price_with_tax.formatted);
+            viewModel.nonSaleWithTax.$span.html(formatPriceForLocale(price.non_sale_price_with_tax));
         }
 
         if (price.non_sale_price_without_tax) {
             viewModel.priceLabel.$span.hide();
             viewModel.nonSaleWithoutTax.$div.show();
             viewModel.priceNowLabel.$span.show();
-            viewModel.nonSaleWithoutTax.$span.html(price.non_sale_price_without_tax.formatted);
+            viewModel.nonSaleWithoutTax.$span.html(formatPriceForLocale(price.non_sale_price_without_tax));
         }
     }
 
