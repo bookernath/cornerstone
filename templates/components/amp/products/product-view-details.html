@@ -63,7 +63,7 @@
                         <dd class="productView-info-value">{{lang 'products.shipping_free'}}</dd>
                     {{else}}
                         <dt class="productView-info-name">{{lang 'products.shipping'}}</dt>
-                        <dd class="productView-info-value">{{lang 'products.shipping_fixed' amount=product.shipping.price.formatted}}</dd>
+                        <dd class="productView-info-value">{{lang 'products.shipping_fixed' amount=(localizePrice product.shipping.price settings.request.locale)}}</dd>
                     {{/if}}
                 {{/if}}
             {{/if}}
@@ -90,9 +90,9 @@
                                 {{#if type '===' 'percent'}}
                                     {{lang 'products.bulk_pricing.percent' discount=discount.formatted}}
                                 {{else if type '===' 'fixed'}}
-                                    {{lang 'products.bulk_pricing.fixed' discount=discount.formatted}}
+                                    {{lang 'products.bulk_pricing.fixed' discount=(localizePrice discount settings.request.locale)}}
                                 {{else if type '===' 'price'}}
-                                    {{lang 'products.bulk_pricing.price' discount=discount.formatted}}
+                                    {{lang 'products.bulk_pricing.price' discount=(localizePrice discount settings.request.locale)}}
                                 {{/if}}
                             </li>
                         {{/each}}

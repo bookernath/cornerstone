@@ -22,7 +22,7 @@
                     {{else if type '===' 'fixed'}}
                     {{lang 'products.bulk_pricing.fixed' discount=(localizePrice discount settings.request.locale)}}
                     {{else if type '===' 'price'}}
-                    {{lang 'products.bulk_pricing.price' discount=discount.formatted}}
+                    {{lang 'products.bulk_pricing.price' discount=(localizePrice discount settings.request.locale)}}
                     {{/if}}
                 </li>
                 {{/each}}
