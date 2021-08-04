@@ -8,10 +8,41 @@ product:
         limit: {{theme_settings.productpage_related_products_count}}
     similar_by_views:
         limit: {{theme_settings.productpage_similar_by_views_count}}
+gql: "
+query productById($productId: Int!) {
+  site {
+    product(entityId: $productId) {
+      reviewSummary {
+        numberOfReviews
+        summationOfRatings
+      }
+      reviews(first: 50) {
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+        edges {
+          node {
+            author {
+              name
+            }
+            rating
+            title
+            text
+            createdAt {
+              utc
+            }
+          }
+        }
+      }
+    }
+  }
+}
+"
 ---
 {{inject 'productId' product.id}}
-
 {{#partial "page"}}
+    {{json gql}}
 
     {{> components/common/breadcrumbs breadcrumbs=breadcrumbs}}
 
@@ -29,7 +60,7 @@ product:
         {{/if}}
 
         {{#all settings.show_product_reviews theme_settings.show_product_reviews (if theme_settings.show_product_details_tabs '!==' true)}}
-            {{> components/products/reviews reviews=product.reviews product=product urls=urls}}
+            {{> components/products/reviews reviewSummary=gql.site.product.reviewSummary reviews=gql.site.product.reviews product=product urls=urls}}
         {{/all}}
 
         {{> components/products/tabs}}
