@@ -26,19 +26,18 @@
     {{/if}}
 </div>
 
-{{!-- Inject redirect configuration into JavaScript context --}}
-{{inject "catalystRedirect" (json 
-    catalyst_url=(default theme_settings.catalyst_storefront_url settings.base_url)
-    delay=theme_settings.redirect_delay
-    debug_mode=theme_settings.enable_debug_mode
-)}}
-
 <script>
 (function() {
     'use strict';
     
     // Get redirect configuration from injected context
-    var config = {{{jsContext}}};
+    var config = {
+        catalystRedirect: {
+            catalyst_url: "{{default theme_settings.catalyst_storefront_url settings.base_url}}",
+            delay: "{{theme_settings.redirect_delay}}",
+            debug_mode: "{{theme_settings.enable_debug_mode}}"
+        }
+    };
     var catalystRedirect = config.catalystRedirect || {};
     
     // Default configuration
