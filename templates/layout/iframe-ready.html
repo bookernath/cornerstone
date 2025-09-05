@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html class="no-js iframe-ready" lang="{{ locale_name }}">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <title>{{#if page_title}}{{page_title}}{{else}}{{settings.store_name}}{{/if}}</title>
+    
+    {{!-- Inject essential context --}}
+    {{inject "settings" settings}}
+    {{inject "customer" customer}}
+    {{inject "urls" urls}}
+    {{inject "page" page}}
+    
+    {{!-- Essential CSS for iframe content --}}
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-body, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+            line-height: 1.6;
+            color: var(--color-foreground, #333);
+            background: var(--color-background, #fff);
+            padding: 1rem;
+        }
+        
+        /* Iframe-specific styling */
+        .iframe-ready {
+            background: transparent;
+        }
+        
+        .iframe-content {
+            width: 100%;
+            max-width: 100%;
+        }
+        
+        /* Hide elements that shouldn't appear in iframe */
+        .hide-in-iframe {
+            display: none !important;
+        }
+        
+        /* Form styling */
+        .form {
+            width: 100%;
+        }
+        
+        .form-field {
+            margin-bottom: 1rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+            color: var(--color-foreground, #333);
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--color-border, #ccc);
+            border-radius: 4px;
+            font-size: 1rem;
+            background-color: var(--color-background, #fff);
+            color: var(--color-foreground, #333);
+        }
+        
+        .form-input:focus {
+            outline: 2px solid var(--color-primary, #007bff);
+            outline-offset: -2px;
+        }
+        
+        .button {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background-color: var(--color-primary, #007bff);
+            color: white;
+            text-decoration: none;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .button:hover {
+            background-color: var(--color-primary-dark, #0056b3);
+        }
+        
+        .button--secondary {
+            background-color: transparent;
+            color: var(--color-primary, #007bff);
+            border: 1px solid var(--color-primary, #007bff);
+        }
+        
+        .button--secondary:hover {
+            background-color: var(--color-primary, #007bff);
+            color: white;
+        }
+        
+        /* Alert/message styling */
+        .alert {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+            border: 1px solid transparent;
+        }
+        
+        .alert--success {
+            background-color: var(--color-success-light, #d4edda);
+            border-color: var(--color-success, #28a745);
+            color: var(--color-success-dark, #155724);
+        }
+        
+        .alert--error {
+            background-color: var(--color-error-light, #f8d7da);
+            border-color: var(--color-error, #dc3545);
+            color: var(--color-error-dark, #721c24);
+        }
+        
+        .alert--warning {
+            background-color: var(--color-warning-light, #fff3cd);
+            border-color: var(--color-warning, #ffc107);
+            color: var(--color-warning-dark, #856404);
+        }
+        
+        /* Loading states */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        .spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid var(--color-primary, #007bff);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-left: 0.5rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Responsive adjustments for iframe */
+        @media (max-width: 768px) {
+            body {
+                padding: 0.5rem;
+            }
+            
+            .form-input,
+            .button {
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+        }
+    </style>
+    
+    {{!-- Include Catalyst color tokens --}}
+    <style>
+        :root {
+            --color-primary: {{theme_settings.color-primary}};
+            --color-accent: {{theme_settings.color-accent}};
+            --color-background: {{theme_settings.color-background}};
+            --color-foreground: {{theme_settings.color-foreground}};
+            --color-success: {{theme_settings.color-success}};
+            --color-error: {{theme_settings.color-error}};
+            --color-warning: {{theme_settings.color-warning}};
+            --color-info: {{theme_settings.color-info}};
+            --font-body: {{theme_settings.body-font}};
+            --font-heading: {{theme_settings.headings-font}};
+        }
+    </style>
+</head>
+<body class="iframe-content">
+    <main class="main" role="main">
+        {{{content}}}
+    </main>
+    
+    {{!-- JavaScript context for components --}}
+    <script>
+        window.iframeMode = true;
+        window.catalystSettings = {{{jsContext}}};
+        
+        // Notify parent frame about content changes
+        function notifyParentFrame(event, data) {
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'catalystCheckoutTheme',
+                    event: event,
+                    data: data || {}
+                }, '*');
+            }
+        }
+        
+        // Notify parent when content is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            notifyParentFrame('contentLoaded', {
+                height: document.body.scrollHeight,
+                title: document.title
+            });
+        });
+        
+        // Auto-resize iframe based on content
+        function updateIframeHeight() {
+            notifyParentFrame('heightUpdate', {
+                height: document.body.scrollHeight
+            });
+        }
+        
+        // Observer for content changes
+        if (window.ResizeObserver) {
+            new ResizeObserver(updateIframeHeight).observe(document.body);
+        } else {
+            // Fallback for older browsers
+            setInterval(updateIframeHeight, 500);
+        }
+    </script>
+</body>
+</html>

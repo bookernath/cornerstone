@@ -1,36 +1,105 @@
-{{#partial "page"}}
+{{!-- 
+    catalyst-checkout-theme: Gift Certificate Balance (Iframe-ready)
+    This page is designed to be embedded in Catalyst via iframe
+--}}
+{{#partial "content"}}
+    <div class="gift-certificate-balance-iframe-container">
+        <h2 class="gift-certificate-heading">{{lang 'gift_certificate.heading' }}</h2>
+        
+        <div class="gift-certificate-balance-content">
+            <h3>{{lang 'gift_certificate.balance.heading'}}</h3>
+            <p class="gift-certificate-intro">
+                <strong>{{lang 'gift_certificate.balance.intro' }}</strong>
+            </p>
 
-{{> components/common/breadcrumbs breadcrumbs=breadcrumbs}}
-<h1 class="page-heading">{{lang 'gift_certificate.heading' }}</h1>
-{{> components/gift-certificate/navigation gift_page='balance'}}
+            {{#if gift_certificate}}
+                {{#if gift_certificate.error}}
+                    {{> components/common/alert/alert-error gift_certificate.error}}
+                {{else}}
+                    <div class="gift-certificate-result">
+                        <h1 class="gift-certificate-balance-amount">{{gift_certificate.balance.formatted}}</h1>
+                        <h3 class="gift-certificate-code">{{gift_certificate.code}}</h3>
+                    </div>
+                {{/if}}
+            {{/if}}
 
-<main class="account account--fixed">
-    <h3>{{lang 'gift_certificate.balance.heading'}}</h3>
-    <p>
-        <strong>{{lang 'gift_certificate.balance.intro' }}</strong>
-    </p>
-
-    {{#if gift_certificate}}
-        {{#if gift_certificate.error}}
-            {{> components/common/alert/alert-error gift_certificate.error}}
-        {{else}}
-            <h1>{{gift_certificate.balance.formatted}}</h1>
-            <h3>{{gift_certificate.code}}</h3>
-        {{/if}}
-    {{/if}}
-
-    <form class="form form--oneField" id="gift-certificate-balance" method="get">
-        <input type="hidden" name="action" value="balance">
-        <div class="form-field">
-            <label class="form-label" for="giftcertificatecode">
-                {{lang 'forms.gift_certificate.balance.code' }}
-            </label>
-            <div class="form-prefixPostfix wrap">
-                <input class="form-input" id="giftcertificatecode" name="giftcertificatecode">
-                <input type="submit" class="button button--primary form-prefixPostfix-button--postfix" value="{{lang 'forms.gift_certificate.balance.submit_value' }}">
-            </div>
+            <form class="form gift-certificate-balance-form" id="gift-certificate-balance" method="get">
+                <input type="hidden" name="action" value="balance">
+                <div class="form-field">
+                    <label class="form-label" for="giftcertificatecode">
+                        {{lang 'forms.gift_certificate.balance.code' }}
+                    </label>
+                    <div class="form-input-group">
+                        <input class="form-input" id="giftcertificatecode" name="giftcertificatecode" placeholder="Enter gift certificate code">
+                        <input type="submit" class="button button--primary" value="{{lang 'forms.gift_certificate.balance.submit_value' }}">
+                    </div>
+                </div>
+            </form>
         </div>
-    </form>
-</main>
+    </div>
+
+    <style>
+        .gift-certificate-balance-iframe-container {
+            padding: 1rem;
+        }
+        
+        .gift-certificate-heading {
+            margin-bottom: 1rem;
+            color: var(--color-foreground);
+        }
+        
+        .gift-certificate-intro {
+            margin-bottom: 2rem;
+            color: var(--color-foreground);
+        }
+        
+        .gift-certificate-result {
+            background-color: var(--color-success-light, #d4edda);
+            border: 1px solid var(--color-success, #28a745);
+            border-radius: 4px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .gift-certificate-balance-amount {
+            font-size: 2rem;
+            color: var(--color-success, #28a745);
+            margin-bottom: 0.5rem;
+        }
+        
+        .gift-certificate-code {
+            font-family: monospace;
+            color: var(--color-info, #666);
+            margin: 0;
+        }
+        
+        .gift-certificate-balance-form {
+            margin-top: 2rem;
+        }
+        
+        .form-input-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .form-input-group .form-input {
+            flex: 1;
+        }
+        
+        .form-input-group .button {
+            white-space: nowrap;
+        }
+        
+        @media (max-width: 768px) {
+            .form-input-group {
+                flex-direction: column;
+            }
+            
+            .gift-certificate-balance-amount {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
 {{/partial}}
-{{> layout/base}}
+{{> layout/iframe-ready}}

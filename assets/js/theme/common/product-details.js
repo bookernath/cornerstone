@@ -1,7 +1,7 @@
 import utils from '@bigcommerce/stencil-utils';
 import ProductDetailsBase, { optionChangeDecorator } from './product-details-base';
-import 'foundation-sites/js/foundation/foundation';
-import 'foundation-sites/js/foundation/foundation.reveal';
+import 'foundation-sites/js/foundation.js';
+import 'foundation-sites/js/foundation.reveal.js';
 import ImageGallery from '../product/image-gallery';
 import modalFactory, { alertModal, showAlertModal } from '../global/modal';
 import { isEmpty, isPlainObject } from 'lodash';

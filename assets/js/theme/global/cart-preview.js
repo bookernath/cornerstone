@@ -1,5 +1,5 @@
-import 'foundation-sites/js/foundation/foundation';
-import 'foundation-sites/js/foundation/foundation.dropdown';
+import 'foundation-sites/js/foundation.js';
+import 'foundation-sites/js/foundation.dropdown.js';
 import utils from '@bigcommerce/stencil-utils';
 
 export const CartPreviewEvents = {

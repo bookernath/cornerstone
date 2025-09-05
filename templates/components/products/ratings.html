@@ -1,23 +1,6 @@
-<span role="img"
-    {{#if rating_target}}
-      aria-label="{{lang 'products.reviews.rating_aria_label' rating_target=rating_target current_rating=rating max_rating=5}}"
-    {{else}}
-      aria-label="{{lang 'products.reviews.rating_aria_label' rating_target='Product' current_rating=rating max_rating=5}}"
+{{!-- Minimal ratings stub for redirect theme --}}
+<div class="ratings">
+    {{#if rating}}
+        <span class="rating">{{rating}}</span>
     {{/if}}
->
-    {{#for 1 5}}
-        {{#if ../this.rating '>=' $index}}
-            <span class="icon icon--ratingFull">
-                <svg>
-                    <use href="#icon-star" />
-                </svg>
-            </span>
-        {{else}}
-            <span class="icon icon--ratingEmpty">
-                <svg>
-                    <use href="#icon-star" />
-                </svg>
-            </span>
-        {{/if}}
-    {{/for}}
-</span>
+</div>

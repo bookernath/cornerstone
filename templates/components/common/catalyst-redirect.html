@@ -1,0 +1,174 @@
+{{!-- 
+    Universal redirect component for catalyst-checkout-theme
+    Redirects users from Stencil pages back to Catalyst storefront
+--}}
+
+<div class="catalyst-redirect-container">
+    {{#if theme_settings.enable_debug_mode}}
+        <div class="catalyst-redirect-notice">
+            <div class="catalyst-redirect-notice__content">
+                <div class="store-logo">
+                    {{#if settings.store_logo.image}}
+                        <img src="{{getImage settings.store_logo.image 'logo_size'}}"
+                             alt="{{settings.store_logo.title}}"
+                             title="{{settings.store_logo.title}}">
+                    {{else}}
+                        <span class="store-logo-text">{{settings.store_name}}</span>
+                    {{/if}}
+                </div>
+                <h2>Taking you to {{settings.store_name}}...</h2>
+                <p>You will be automatically redirected to our store in <span id="redirect-countdown">{{theme_settings.redirect_delay}}</span>ms</p>
+                <a href="#" class="button button--primary" onclick="performCatalystRedirect(); return false;">
+                    Continue to {{settings.store_name}}
+                </a>
+            </div>
+        </div>
+    {{/if}}
+</div>
+
+{{!-- Inject redirect configuration into JavaScript context --}}
+{{inject "catalystRedirect" (json 
+    catalyst_url=(default theme_settings.catalyst_storefront_url settings.base_url)
+    delay=theme_settings.redirect_delay
+    debug_mode=theme_settings.enable_debug_mode
+)}}
+
+<script>
+(function() {
+    'use strict';
+    
+    // Get redirect configuration from injected context
+    var config = {{{jsContext}}};
+    var catalystRedirect = config.catalystRedirect || {};
+    
+    // Default configuration
+    var baseUrl = catalystRedirect.catalyst_url;
+    var delay = parseInt(catalystRedirect.delay) || 1000;
+    var debugMode = catalystRedirect.debug_mode || false;
+    
+    // Global redirect function
+    window.performCatalystRedirect = function() {
+        try {
+            // Get the current URL to preserve query params and hash
+            var currentUrl = new URL(window.location.href);
+            
+            // Create the target URL
+            var targetUrl = new URL(currentUrl.pathname + currentUrl.search + currentUrl.hash, baseUrl);
+            
+            // Perform the redirect
+            window.location.replace(targetUrl.toString());
+        } catch (error) {
+            console.error('Redirect error:', error);
+            // Fallback to simple redirect
+            window.location.href = baseUrl + window.location.pathname;
+        }
+    };
+    
+    // Update countdown display if debug mode is enabled
+    if (debugMode && document.getElementById('redirect-countdown')) {
+        var countdownElement = document.getElementById('redirect-countdown');
+        var remainingTime = delay;
+        
+        var countdown = setInterval(function() {
+            remainingTime -= 100;
+            countdownElement.textContent = remainingTime;
+            
+            if (remainingTime <= 0) {
+                clearInterval(countdown);
+            }
+        }, 100);
+    }
+    
+    // Perform the redirect after delay
+    setTimeout(window.performCatalystRedirect, delay);
+    
+    // Fallback meta refresh in case JavaScript fails
+    // Note: Meta refresh will only use the path, JavaScript handles full URL with params
+    var metaRefresh = document.createElement('meta');
+    metaRefresh.setAttribute('http-equiv', 'refresh');
+    metaRefresh.setAttribute('content', Math.ceil(delay / 1000) + '; url=' + baseUrl + '{{settings.request.absolute_path}}');
+    document.head.appendChild(metaRefresh);
+    
+})();
+</script>
+
+<style>
+.catalyst-redirect-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background-color: {{#if theme_settings.color-background}}{{theme_settings.color-background}}{{else}}#ffffff{{/if}};
+    color: {{#if theme_settings.color-foreground}}{{theme_settings.color-foreground}}{{else}}#333333{{/if}};
+    font-family: {{#if theme_settings.body-font}}{{getFontFamilyName theme_settings.body-font}}{{else}}-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif{{/if}};
+}
+
+.catalyst-redirect-notice {
+    max-width: 600px;
+    text-align: center;
+    padding: 3rem;
+    border: 1px solid {{#if theme_settings.color-accent}}{{theme_settings.color-accent}}{{else}}#e5e5e5{{/if}};
+    border-radius: 8px;
+    background-color: {{#if theme_settings.color-background}}{{theme_settings.color-background}}{{else}}#ffffff{{/if}};
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.store-logo {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.store-logo img {
+    max-height: 80px;
+    width: auto;
+}
+
+.store-logo-text {
+    font-size: 2rem;
+    font-weight: 600;
+    color: {{#if theme_settings.color-primary}}{{theme_settings.color-primary}}{{else}}#333{{/if}};
+    font-family: {{#if theme_settings.headings-font}}{{getFontFamilyName theme_settings.headings-font}}{{else}}-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif{{/if}};
+}
+
+.catalyst-redirect-notice__content h2 {
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    color: {{#if theme_settings.color-primary}}{{theme_settings.color-primary}}{{else}}#333333{{/if}};
+    font-family: {{#if theme_settings.headings-font}}{{getFontFamilyName theme_settings.headings-font}}{{else}}-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif{{/if}};
+}
+
+.catalyst-redirect-notice__content p {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+    color: {{#if theme_settings.color-foreground}}{{theme_settings.color-foreground}}{{else}}#666666{{/if}};
+}
+
+.catalyst-redirect-notice__countdown {
+    font-family: monospace;
+    font-size: 0.9rem;
+    color: {{#if theme_settings.color-info}}{{theme_settings.color-info}}{{else}}#666666{{/if}};
+}
+
+.button {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.button--primary {
+    background-color: {{#if theme_settings.color-primary}}{{theme_settings.color-primary}}{{else}}#333333{{/if}};
+    color: white;
+    border: 1px solid {{#if theme_settings.color-primary}}{{theme_settings.color-primary}}{{else}}#333333{{/if}};
+}
+
+.button--primary:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+</style>

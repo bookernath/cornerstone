@@ -1,5 +1,5 @@
-import 'foundation-sites/js/foundation/foundation';
-import 'foundation-sites/js/foundation/foundation.reveal';
+import 'foundation-sites/js/foundation.js';
+import 'foundation-sites/js/foundation.reveal.js';
 import nod from './common/nod';
 import PageManager from './page-manager';
 import { wishlistPaginatorHelper } from './common/utils/pagination-utils';

@@ -1,146 +1,180 @@
-# Cornerstone
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/bigcommerce/cornerstone)
-![tests](https://github.com/bigcommerce/cornerstone/workflows/Theme%20Bundling%20Test/badge.svg?branch=master)
+# Catalyst Checkout Theme
 
-Stencil's Cornerstone theme is the building block for BigCommerce theme developers to get started quickly developing premium quality themes on the BigCommerce platform.
+A specialized Stencil theme designed as a fallback and support system for [BigCommerce Catalyst](https://github.com/bigcommerce/catalyst) storefronts.
 
-### Stencil Utils
-[Stencil-utils](https://github.com/bigcommerce/stencil-utils) is our supporting library for our events and remote interactions.
+## Overview
 
-## JS API
-When writing theme JavaScript (JS) there is an API in place for running JS on a per page basis. To properly write JS for your theme, the following page types are available to you:
+The **Catalyst Checkout Theme** serves as a seamless bridge between Catalyst (React-based) storefronts and essential e-commerce functionality that requires Stencil. Rather than replacing Catalyst, this theme acts as an intelligent fallback that automatically redirects users back to the main Catalyst storefront while preserving critical checkout and account management capabilities.
 
-* "pages/account/addresses"
-* "pages/account/add-address"
-* "pages/account/add-return"
-* "pages/account/add-wishlist"
-* "pages/account/recent-items"
-* "pages/account/download-item"
-* "pages/account/edit"
-* "pages/account/return-saved"
-* "pages/account/returns"
-* "pages/account/payment-methods"
-* "pages/auth/login"
-* "pages/auth/account-created"
-* "pages/auth/create-account"
-* "pages/auth/new-password"
-* "pages/blog"
-* "pages/blog-post"
-* "pages/brand"
-* "pages/brands"
-* "pages/cart"
-* "pages/category"
-* "pages/compare"
-* "pages/errors"
-* "pages/gift-certificate/purchase"
-* "pages/gift-certificate/balance"
-* "pages/gift-certificate/redeem"
-* "global"
-* "pages/home"
-* "pages/order-complete"
-* "pages/page"
-* "pages/product"
-* "pages/search"
-* "pages/sitemap"
-* "pages/subscribed"
-* "pages/account/wishlist-details"
-* "pages/account/wishlists"
+### Key Features
 
-These page types will correspond to the pages within your theme. Each one of these page types map to an ES6 module that extends the base `PageManager` abstract class.
+- **🔄 Automatic Redirection**: Most pages automatically redirect users back to Catalyst with a branded, customizable delay
+- **🛒 Preserved Checkout Flow**: Complete, untouched checkout experience for seamless transactions
+- **👤 Account Management**: Iframe-ready account pages for payment methods and gift certificate management
+- **🎨 Brand Consistency**: Inherits store branding (logo, colors, typography) from theme settings
+- **🌐 URL Preservation**: Maintains query parameters, anchors, and full URL structure during redirects
+- **⚡ Performance First**: Minimal footprint with stripped-down configuration focused on essential functionality
 
-```javascript
-    export default class Auth extends PageManager {
-        constructor() {
-            // Set up code goes here; attach to internals and use internals as you would 'this'
-        }
-    }
+## How It Works
+
+### Page Classification
+
+**Redirect Pages (→ Catalyst)**
+- Homepage, product pages, category pages
+- Cart, search results, brand pages
+- Error pages (404, 403, 500, etc.)
+- *These pages show a branded redirect screen and automatically send users to Catalyst*
+
+**Preserved Pages (Stencil)**
+- **Checkout Flow**: Complete payment processing (essential for transactions)
+- **Account Payment Methods**: Credit card management (iframe-ready for Catalyst embedding)
+- **Gift Certificates**: Balance checking and redemption (iframe-ready for Catalyst embedding)
+
+### Redirect Experience
+
+When users land on a redirect page, they see:
+1. **Store branding** (logo and name from theme settings)
+2. **Friendly messaging** ("Taking you to [Store Name]...")
+3. **Automatic redirect** after configurable delay (0-5000ms)
+4. **Manual fallback** button if auto-redirect fails
+5. **Debug mode** for testing and development
+
+## Theme Variations
+
+Built on the **Soul Design System** with three curated variations:
+
+- **Electric**: Vibrant green theme optimized for technology and modern retail
+- **Luxury**: Sophisticated neutral tones perfect for premium brands
+- **Warm**: Soft, muted warm tones ideal for lifestyle and wellness brands
+
+Each variation includes optimized color palettes, typography choices, and styling that maintains consistency with modern Catalyst designs.
+
+## Configuration
+
+### Theme Settings
+
+```json
+{
+  "catalyst_storefront_url": "https://your-catalyst-store.com",
+  "redirect_delay": 1000,
+  "enable_debug_mode": false
+}
 ```
 
-### JS Template Context Injection
-Occasionally you may need to use dynamic data from the template context within your client-side theme application code.
+- **catalyst_storefront_url**: Target Catalyst URL (falls back to `{{settings.base_url}}` if empty)
+- **redirect_delay**: Delay in milliseconds before redirect (0-5000ms)
+- **enable_debug_mode**: Shows redirect notices and countdown for testing
 
-Two helpers are provided to help achieve this.
+### Color Tokens
 
-The inject helper allows you to compose a JSON object with a subset of the template context to be sent to the browser.
+The theme uses CSS custom properties for consistent branding:
+- `--color-primary`: Main brand color
+- `--color-accent`: Secondary accent color  
+- `--color-background`/`--color-foreground`: Base contrast colors
+- `--color-success`/`--color-error`/`--color-warning`/`--color-info`: Status colors
 
-```
-{{inject "stringBasedKey" contextValue}}
-```
+## Development
 
-To retrieve the parsable JSON object, just call `{{jsContext}}` after all of the `{{@inject}}` calls.
+### Prerequisites
 
-For example, to setup the product name in your client-side app, you can do the following if you're in the context of a product:
+- **Node.js 20+** (Stencil CLI requirement)
+- **npm 10+**
+- **Stencil CLI**: `npm install -g @bigcommerce/stencil-cli`
 
-```html
-{{inject "myProductName" product.title}}
+### Setup
 
-<script>
-// Note the lack of quotes around the jsContext handlebars helper, it becomes a string automatically.
-var jsContext = JSON.parse({{jsContext}}); // jsContext would output "{\"myProductName\": \"Sample Product\"}" which can feed directly into your JavaScript
-
-console.log(jsContext.myProductName); // Will output: Sample Product
-</script>
-```
-
-You can compose your JSON object across multiple pages to create a different set of client-side data depending on the currently loaded template context.
-
-The stencil theme makes the jsContext available on both the active page scoped and global PageManager objects as `this.context`.
-
-## Polyfilling via Feature Detection
-Cornerstone implements [this strategy](https://philipwalton.com/articles/loading-polyfills-only-when-needed/) for polyfilling.
-
-In `templates/components/common/polyfill-script.html` there is a simple feature detection script which can be extended to detect any recent JS features you intend to use in your theme code.
-
-If any one of the conditions is not met, an additional blocking JS bundle configured in `assets/js/polyfills.js` will be loaded to polyfill modern JS features before the main bundle executes. 
-
-This intentionally prioritizes the experience of the 90%+ of shoppers who are on modern browsers in terms of performance, while maintaining compatibility (at the expense of additional JS download+parse for the polyfills) for users on legacy browsers.
-
-## Static assets
-Some static assets in the Stencil theme are handled with Grunt if required. This
-means you have some dependencies on grunt and npm. To get started:
-
-First make sure you have Grunt installed globally on your machine:
-
-```
-npm install -g grunt-cli
-```
-
-and run:
-
-```
+```bash
+# Install dependencies
 npm install
+
+# Initialize Stencil configuration
+stencil init
+
+# Start development server
+stencil start
 ```
 
-Note: package-lock.json file was generated by Node version 20 and npm version 10. The app supports Node 20 as well as multiple versions of npm, but we should always use those versions when updating package-lock.json, unless it is decided to upgrade those, and in this case the readme should be updated as well. If using a different version for node OR npm, please delete the package-lock.json file prior to installing node packages and also prior to pushing to github.
+### Build Commands
 
-If updating or adding a dependency, please double check that you are working on Node version 20 and npm version 10 and run ```npm update <package_name>```  or ```npm install <package_name>``` (avoid running npm install for updating a package). After updating the package, please make sure that the changes in the package-lock.json reflect only the updated/new package prior to pushing the changes to github.
-
-
-### Icons
-Icons are delivered via a single SVG sprite, which is embedded on the page in
-`templates/layout/base.html`. It is generated via a grunt task `grunt svgstore`.
-
-The task takes individual SVG files for each icon in `assets/icons` and bundles
-them together, to be inlined on the top of the theme, via an ajax call managed
-by svg-injector. Each icon can then be called in a similar way to an inline image via:
-
-```
-<svg><use xlink:href="#icon-svgFileName" /></svg>
+```bash
+npm run build          # Production build
+npm run buildDev       # Development build
+grunt svgstore        # Generate SVG sprite
+npm test              # Run Jest tests
+npm run stylelint     # Lint SCSS files
 ```
 
-The ID of the SVG icon you are calling is based on the filename of the icon you want,
-with `icon-` prepended. e.g. `xlink:href="#icon-facebook"`.
+### Stencil CLI Commands
 
-Simply add your new icon SVG file to the icons folder, and run `grunt svgstore`,
-or just `grunt`.
+```bash
+stencil start         # Development server with live reload
+stencil bundle        # Create theme bundle (.zip)
+stencil push          # Upload theme to BigCommerce
+stencil pull          # Download active theme configuration
+```
 
-#### License
+### Deploying to Catalyst Channel
 
-(The MIT License)
-Copyright (C) 2015-present BigCommerce Inc.
+To deploy this theme to a specific Catalyst channel (required for Catalyst storefronts):
+
+```bash
+stencil push -a -c <channel-id>
+```
+
+**Example:**
+```bash
+stencil push -a -c 12345
+```
+
+**Flags:**
+- `-a` or `--activate`: Automatically activates the theme after upload
+- `-c` or `--channel_id`: Specifies the channel ID to deploy to
+
+**Finding Your Channel ID:**
+1. Navigate to **Channel Manager** in your BigCommerce admin
+2. Select your Catalyst channel
+3. The channel ID appears in the URL: `/manage/channel-manager/channels/{channel-id}`
+
+**Important:** Always deploy to the correct Catalyst channel to ensure the checkout fallback functionality works properly with your Catalyst storefront.
+
+## Architecture
+
+### Template Structure
+
+- **`layout/catalyst-redirect.html`**: Main redirect layout with branding and auto-redirect logic
+- **`layout/iframe-ready.html`**: Isolated layout for embedding in Catalyst
+- **`layout/base.html`**: Traditional layout (checkout only)
+- **`components/common/catalyst-redirect.html`**: Reusable redirect component with debug mode
+
+### JavaScript Redirect Logic
+
+Uses modern `URL` API for robust redirect handling:
+- Preserves complete URL structure (path + query + hash)
+- Graceful fallback to meta refresh for broad browser support
+- Error handling with console logging for debugging
+- Configurable delays and debug mode support
+
+### Theme Settings Integration
+
+- Dynamic fallback from `catalyst_storefront_url` to `{{settings.base_url}}`
+- Store branding integration (`{{settings.store_name}}`, `{{settings.store_logo}}`)
+- Theme color tokens mapped to CSS custom properties
+- Typography settings applied consistently across all pages
+
+## Use Cases
+
+- **Catalyst Stores**: Primary deployment as checkout-only fallback theme
+- **Migration Period**: Temporary bridge during Catalyst adoption
+- **Essential Services**: Hosting critical Stencil-dependent functionality
+- **Iframe Embedding**: Account management pages embedded in Catalyst
+
+## License
+
+(The MIT License)  
+Copyright (C) 2015-present BigCommerce Inc.  
 All rights reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 

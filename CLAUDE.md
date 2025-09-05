@@ -4,7 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Cornerstone is BigCommerce's reference Stencil theme built with ES6 JavaScript, Handlebars templates, and SCSS. It serves as the foundation for premium BigCommerce theme development.
+This is the **catalyst-checkout-theme**, a specialized Stencil theme built from Cornerstone that serves as a fallback and support system for Catalyst storefronts. The theme is purpose-built to handle scenarios where shoppers using Catalyst may "fall through" to Stencil pages.
+
+### Key Features
+- **Automatic Redirection**: Most pages redirect users back to Catalyst
+- **Iframe-Ready Pages**: Essential pages designed for embedding in Catalyst
+- **Catalyst Color Harmony**: Uses Soul design system colors (Electric, Luxury, Warm)
+- **Minimal Footprint**: Stripped-down configuration focused on checkout functionality
 
 ## Stencil CLI Setup
 
@@ -50,39 +56,49 @@ Cornerstone is BigCommerce's reference Stencil theme built with ES6 JavaScript, 
 - `npm run stylelint` - Lint SCSS files
 - `npm run stylelint:fix` - Auto-fix SCSS linting issues
 
-## Architecture
+## Theme Architecture
 
-### JavaScript Structure
-The theme uses a modular page-based architecture centered around the `PageManager` class:
+### Catalyst Integration
+The theme operates in two primary modes:
 
-1. **Entry Point**: `assets/js/app.js` - Defines the `stencilBootstrap` function that dynamically loads page-specific modules
-2. **Page Classes**: Each page type (product, cart, category, etc.) extends `PageManager` and is loaded on demand
-3. **Global Module**: `assets/js/theme/global.js` - Handles site-wide functionality like navigation, cart preview, and quick search
+1. **Redirect Mode**: Most pages use `layout/catalyst-redirect.html` to automatically redirect users to Catalyst
+2. **Iframe Mode**: Essential pages use `layout/iframe-ready.html` for embedding in Catalyst
 
-### Page Mapping
-Pages are mapped in `assets/js/app.js` using dynamic imports for performance:
-- Account pages → `theme/account.js`
-- Product pages → `theme/product.js` 
-- Cart → `theme/cart.js`
-- Category → `theme/category.js`
-- etc.
+### Page Classification
+
+#### Redirect Pages (→ Catalyst)
+- Homepage (`home.html`)
+- Product pages (`product.html`)
+- Category pages (`category.html`) 
+- Cart page (`cart.html`)
+- Search results (`search.html`)
+- Brand pages (`brand.html`, `brands.html`)
+
+#### Preserved Pages (Stencil)
+- **Checkout**: Complete checkout flow (untouched for critical functionality)
+- **Payment Methods**: Account payment method management (iframe-ready)
+- **Gift Certificates**: Balance checking functionality (iframe-ready)
+
+#### Key Components
+- `components/common/catalyst-redirect.html` - Universal redirect logic
+- Theme settings for Catalyst URL and redirect timing
+- Iframe communication scripts for parent-child messaging
 
 ### Template System
-- **Templates**: Handlebars files in `templates/` directory
-- **Components**: Reusable template parts in `templates/components/`
-- **Layouts**: Base layouts in `templates/layout/`
-- **Context Injection**: Use `{{inject}}` and `{{jsContext}}` helpers to pass server-side data to client-side JavaScript
+- **Redirect Layout**: `layout/catalyst-redirect.html` - Minimal layout with redirect functionality
+- **Iframe Layout**: `layout/iframe-ready.html` - Isolated layout for embedding
+- **Base Layout**: `layout/base.html` - Traditional layout (checkout only)
 
-### Asset Organization
-- **JavaScript**: `assets/js/` - Modular ES6 code with webpack bundling
-- **Styles**: `assets/scss/` - SCSS files with component-based structure  
-- **Icons**: `assets/icons/` - Individual SVG files compiled into a sprite
-- **Images**: `assets/img/` - Static image assets
+### Theme Variations (Soul Design System)
+1. **Electric**: Vibrant green theme (`oklch(90.35% 0.22 136.76)`)
+2. **Luxury**: Sophisticated neutral theme (`oklch(62.85% 0.087 88.95)`)
+3. **Warm**: Soft warm tone theme (`oklch(82.53% 0.171 80.01)`)
 
-### Build System
-- **Webpack**: Handles JavaScript bundling and optimization
-- **Grunt**: Manages SVG icon compilation and other asset tasks
-- **Stencil CLI**: BigCommerce's development tool for theme compilation
+### Configuration
+- `catalyst_storefront_url`: Target Catalyst URL for redirects
+- `redirect_delay`: Configurable delay before redirect (0-5000ms)
+- `enable_debug_mode`: Shows redirect notices for testing
+- Soul color tokens mapped to Catalyst design system
 
 ## Node.js Requirements
 - Node.js version 20

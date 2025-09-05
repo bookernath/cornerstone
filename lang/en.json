@@ -33,6 +33,12 @@
     "categories": {
         "no_products": "There are no products listed under this category."
     },
+    "catalyst_redirect": {
+        "heading": "Redirecting to Catalyst Storefront",
+        "message": "You've accessed a Stencil page that should be handled by Catalyst. You will be automatically redirected to the correct page.",
+        "countdown": "Redirecting in",
+        "manual_redirect": "Continue to Catalyst Now"
+    },
     "checkout": {
         "title": "Checkout"
     },

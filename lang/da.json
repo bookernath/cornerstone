@@ -1033,5 +1033,11 @@
         "privacy_policy": "Politik om beskyttelse af personlige oplysninger",
         "allow_category_tracking": "Tillad sporing af [CATEGORY_NAME]",
         "disallow_category_tracking": "Tillad ikke sporing af [CATEGORY_NAME]"
+    },
+    "catalyst_redirect": {
+        "heading": "Redirecting to Catalyst Storefront",
+        "message": "You've accessed a Stencil page that should be handled by Catalyst. You will be automatically redirected to the correct page.",
+        "countdown": "Redirecting in",
+        "manual_redirect": "Continue to Catalyst Now"
     }
 }
